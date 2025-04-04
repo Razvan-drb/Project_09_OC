@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
 from rest_framework import viewsets
 from .models import Project, Issue, Comment, Contributor
 from .serializers import ProjectSerializer, IssueSerializer, CommentSerializer, ContributorSerializer, UserSerializer
@@ -17,10 +18,27 @@ class IssueViewSet(viewsets.ModelViewSet):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated, IsProjectContributor]
 
+# class ContributorViewSet(viewsets.ModelViewSet):
+#     queryset = Contributor.objects.all()
+#     serializer_class = ContributorSerializer
+#     permission_classes = [IsAuthenticated]
+
 class ContributorViewSet(viewsets.ModelViewSet):
     queryset = Contributor.objects.all()
     serializer_class = ContributorSerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        project = serializer.validated_data['project']
+        if project.author != self.request.user:
+            raise PermissionDenied("Seul l'auteur du projet peut ajouter des contributeurs.")
+        serializer.save()
+
+    def destroy(self, request, *args, **kwargs):
+        contributor = self.get_object()
+        if contributor.project.author != request.user:
+            raise PermissionDenied("Seul l'auteur du projet peut supprimer un contributeur.")
+        return super().destroy(request, *args, **kwargs)
 
 
 class CommentViewSet(viewsets.ModelViewSet):

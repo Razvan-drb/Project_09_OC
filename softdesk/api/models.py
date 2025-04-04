@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.conf import settings
@@ -89,8 +91,18 @@ class Comment(models.Model):
         return f"Comment by {self.author.username} on {self.issue.title}"
 
 
+#
+# class CustomUser(AbstractUser):
+#     can_be_contacted = models.BooleanField(default=False)
+#     can_data_be_shared = models.BooleanField(default=False)
+#
+#     # Correction pour éviter les conflits
+#     groups = models.ManyToManyField(Group, related_name="customuser_set", blank=True)
+#     user_permissions = models.ManyToManyField(Permission, related_name="customuser_permissions", blank=True)
+
 
 class CustomUser(AbstractUser):
+    birth_date = models.DateField(null=True, blank=False)  # Champ obligatoire
     can_be_contacted = models.BooleanField(default=False)
     can_data_be_shared = models.BooleanField(default=False)
 
@@ -98,3 +110,7 @@ class CustomUser(AbstractUser):
     groups = models.ManyToManyField(Group, related_name="customuser_set", blank=True)
     user_permissions = models.ManyToManyField(Permission, related_name="customuser_permissions", blank=True)
 
+    def age(self):
+        """Retourne l'âge de l'utilisateur."""
+        today = date.today()
+        return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
