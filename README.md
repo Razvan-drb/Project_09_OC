@@ -12,7 +12,7 @@ A Django REST API for managing users, projects, issues, comments, and contributo
 1. **Clone the repository:**
 
 ```bash
-git clone https://github.com/Razvan-drb/Project_09_OC
+git clone https://github.com/Razvan-drb/Project_10_OC.git
 ```
 
 ```bash
