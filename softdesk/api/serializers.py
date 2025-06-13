@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class ProjectSerializer(serializers.ModelSerializer):
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     class Meta:
         model = Project
         fields = '__all__'
@@ -38,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
     def validate_birth_date(self, value):
-        """ Vérifie si l'utilisateur a au moins 18 ans """
+        """ Vérifie si l'utilisateur a au moins 15 ans """
         from datetime import date
         today = date.today()
         age = today.year - value.year - ((today.month, today.day) < (value.month, value.day))
@@ -56,7 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-class IssueSerializer(serializers.ModelSerializer):
+class IssueReadSerializer(serializers.ModelSerializer):
     project = ProjectSerializer(read_only=True)
     assignee = UserSerializer(read_only=True)
     author = UserSerializer(read_only=True)
@@ -70,6 +71,13 @@ class IssueSerializer(serializers.ModelSerializer):
     def get_comments(self, obj):
         return CommentSerializer(obj.comments.all(), many=True).data
 
+
+class IssueWriteSerializer(serializers.ModelSerializer):
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Issue
+        fields = '__all__'
 
 class CommentSerializer(serializers.ModelSerializer):
     issue = serializers.PrimaryKeyRelatedField(queryset=Issue.objects.all())  # Link to a specific issue
